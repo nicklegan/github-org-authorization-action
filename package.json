@@ -1,0 +1,33 @@
+{
+  "name": "github-org-authorization-action",
+  "version": "1.0.0",
+  "description": "A GitHub Action to generate reports that contain all the SSH keys, personal access tokens, GitHub App installations, deploy keys and their respective permissions authorized against a GitHub organization.",
+  "author": {
+    "name": "GitHub Expert Services",
+    "email": "services@github.com",
+    "url": "https://services.github.com"
+  },
+  "contributors": [
+    {
+      "name": "Nick Nagel",
+      "email": "nicklegan@github.com",
+      "url": "https://github.com/nicklegan"
+    }
+  ],
+  "license": "MIT",
+  "repository": "github:nicklegan/github-org-authorization-action",
+  "engines": {
+    "node": ">=16",
+    "npm": ">=7"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "npx @vercel/ncc build index.js --out dist --license licenses.txt --quiet --minify"
+  },
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.1",
+    "array-sort": "^1.0.0",
+    "csv": "^6.0.5"
+  }
+}

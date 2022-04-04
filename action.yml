@@ -1,0 +1,26 @@
+name: 'GitHub Organization Authorization Action'
+description: 'A GitHub Action to generate reports that contain all the SSH keys, personal access tokens, GitHub App installations, deploy keys and their respective permissions authorized against a GitHub organization.'
+
+inputs:
+  token:
+    description: 'A Personal Access token with repo and read:org scope'
+    required: true
+  organization:
+    description: 'GitHub organization to retrieve data for'
+    required: false
+  committer-name:
+    description: 'The name of the committer that will appear in the Git history'
+    default: 'github-actions'
+    required: false
+  committer-email:
+    description: 'The committer email that will appear in the Git history'
+    default: 'github-actions@github.com'
+    required: false
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'list'
+  color: 'green'
