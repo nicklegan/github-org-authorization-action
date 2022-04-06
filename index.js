@@ -390,7 +390,7 @@ async function formatApp(appArray) {
       actions: 'Repo: Actions',
       administration: 'Repo: Administration',
       checks: 'Repo: Checks',
-      security_events: 'Repo: Code sanning alerts',
+      security_events: 'Repo: Code scanning alerts',
       statuses: 'Repo: Commit statuses',
       contents: 'Repo: Contents',
       vulnerability_alerts: 'Repo: Dependabot alerts',
