@@ -1,6 +1,6 @@
 {
   "name": "github-org-authorization-action",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A GitHub Action to generate reports that contain all the SSH keys, personal access tokens, GitHub App installations, deploy keys and their respective permissions authorized against a GitHub organization.",
   "author": {
     "name": "GitHub Expert Services",

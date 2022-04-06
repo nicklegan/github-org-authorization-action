@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get authorization report
-        uses: nicklegan/github-org-authorization-action@v1.0.0
+        uses: nicklegan/github-org-authorization-action@v1.0.1
         with:
           token: ${{ secrets.ORG_TOKEN }}
           organization: ''
