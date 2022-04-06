@@ -65,19 +65,19 @@ jobs:
 
 ### SSH key report
 
-| Column                   | Description                                                  |
-| :----------------------- | :----------------------------------------------------------- |
-| Username                 | Name of the user the SSH key belongs to                      |
-| Credential Authorized At | Date the SSH key was first allowed acces to the organization |
-| Credential Accessed At   | Date the SSH key was last accessed                           |
-| Credential Title         | Name of the SSH key                                          |
+| Column                   | Description                                                   |
+| :----------------------- | :------------------------------------------------------------ |
+| Username                 | Name of the user the SSH key belongs to                       |
+| Credential Authorized At | Date the SSH key was first allowed access to the organization |
+| Credential Accessed At   | Date the SSH key was last accessed                            |
+| Credential Title         | Name of the SSH key                                           |
 
 ### Personal access token report
 
 | Column                     | Description                                                         |
 | :------------------------- | :------------------------------------------------------------------ |
 | Username                   | Name of the user the token belongs to                               |
-| Credential Authorized At   | Date the token was first allowed acces to the organization          |
+| Credential Authorized At   | Date the token was first allowed access to the organization         |
 | Credential Accessed At     | Date the token was last accessed                                    |
 | Credential Expires At      | Date the token will expire                                          |
 | Authorized Credential Note | Name of the token                                                   |
@@ -134,7 +134,7 @@ jobs:
 | Repo: Actions                | Workflows, workflow runs and artifacts                                           |
 | Repo: Administration         | Repository creation, deletion, settings, teams, and collaborators                |
 | Repo: Checks                 | Checks on code                                                                   |
-| Repo: Code sanning alerts    | View and manage security events like code scanning alerts                        |
+| Repo: Code scanning alerts   | View and manage security events like code scanning alerts                        |
 | Repo: Commit statuses        | Commit statuses                                                                  |
 | Repo: Contents               | Repository contents, commits, branches, downloads, releases, and merges          |
 | Repo: Dependabot alerts      | Retrieve Dependabot alerts                                                       |
