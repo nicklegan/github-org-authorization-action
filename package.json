@@ -1,7 +1,7 @@
 {
-  "name": "github-org-authorization-action",
-  "version": "1.0.1",
-  "description": "A GitHub Action to generate reports that contain all the SSH keys, personal access tokens, GitHub App installations, deploy keys and their respective permissions authorized against a GitHub organization.",
+  "name": "github-org-authorization-report-action",
+  "version": "2.0.0",
+  "description": "A GitHub Action to generate reports that contain the SSH keys, PATs, GitHub App installations and deploy keys of an org.",
   "author": {
     "name": "GitHub Expert Services",
     "email": "services@github.com",
@@ -25,9 +25,9 @@
     "build": "npx @vercel/ncc build index.js --out dist --license licenses.txt --quiet --minify"
   },
   "dependencies": {
-    "@actions/core": "^1.6.0",
-    "@actions/github": "^5.0.1",
-    "array-sort": "^1.0.0",
-    "csv": "^6.0.5"
+    "@actions/core": "^1.9.0",
+    "@actions/github": "^5.0.3",
+    "csv": "^6.1.5",
+    "natural-orderby": "^2.0.3"
   }
 }

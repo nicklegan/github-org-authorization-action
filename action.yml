@@ -1,12 +1,39 @@
-name: 'GitHub Organization Authorization Action'
-description: 'A GitHub Action to generate reports that contain all the SSH keys, personal access tokens, GitHub App installations, deploy keys and their respective permissions authorized against a GitHub organization.'
+name: 'GitHub Organization Authorization Report Action'
+description: 'A GitHub Action to generate reports that contain the SSH keys, PATs, GitHub App installations and deploy keys of an org.'
 
 inputs:
   token:
     description: 'A Personal Access token with repo and read:org scope'
     required: true
-  organization:
+  org:
     description: 'GitHub organization to retrieve data for'
+    required: false
+  app-sort:
+    description: 'Sort GitHub Apps by selected column'
+    required: false
+  app-sort-order:
+    description: 'Sort GitHub App CSV column in ascending or descending order'
+    required: false
+  ssh-sort:
+    description: 'Sort SSH keys by selected column'
+    required: false
+  ssh-sort-order:
+    description: 'Sort SSH key CSV column in ascending or descending order'
+    required: false
+  pat-sort:
+    description: 'Sort Personal Access Tokens by selected column'
+    required: false
+  pat-sort-order:
+    description: 'Sort Personal Access Token CSV column in ascending or descending order'
+    required: false
+  deploy-keys-sort:
+    description: 'Sort Deploy Keys by selected column'
+    required: false
+  deploy-keys-sort-order:
+    description: 'Sort Deploy Key CSV column in ascending or descending order'
+    required: false
+  json:
+    description: 'Generate optional report in JSON format'
     required: false
   committer-name:
     description: 'The name of the committer that will appear in the Git history'
@@ -23,4 +50,4 @@ runs:
 
 branding:
   icon: 'list'
-  color: 'green'
+  color: 'blue'
