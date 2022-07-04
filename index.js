@@ -1,16 +1,24 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
-const arraySort = require('array-sort')
+const { orderBy } = require('natural-orderby')
 const { stringify } = require('csv-stringify/sync')
-
 const token = core.getInput('token', { required: true })
 const octokit = github.getOctokit(token)
-
 const eventPayload = require(process.env.GITHUB_EVENT_PATH)
-const org = core.getInput('organization', { required: false }) || eventPayload.organization.login
 const { owner, repo } = github.context.repo
+
 const committerName = core.getInput('committer-name', { required: false }) || 'github-actions'
 const committerEmail = core.getInput('committer-email', { required: false }) || 'github-actions@github.com'
+const org = core.getInput('org', { required: false }) || eventPayload.organization.login
+const jsonExport = core.getInput('json', { required: false }) || 'false'
+const sortAppColumn = core.getInput('app-sort', { required: false }) || 'install_id'
+const sortAppOrder = core.getInput('app-sort-order', { required: false }) || 'desc'
+const sortSshColumn = core.getInput('ssh-sort', { required: false }) || 'credential_authorized_at'
+const sortSshOrder = core.getInput('ssh-sort-order', { required: false }) || 'desc'
+const sortPatColumn = core.getInput('pat-sort', { required: false }) || 'credential_authorized_at'
+const sortPatOrder = core.getInput('pat-sort-order', { required: false }) || 'desc'
+const sortDeployKeyColumn = core.getInput('deploy-key-sort', { required: false }) || 'date'
+const sortDeployKeyOrder = core.getInput('deploy-key-sort-order', { required: false }) || 'desc'
 
 ;(async () => {
   try {
@@ -236,7 +244,8 @@ async function formatPat(patArray) {
     }
 
     const reportPath = { path: `reports/${org}-PAT-list.csv` }
-    const sortArray = arraySort(patArray, 'credential_authorized_at', { reverse: true })
+    const jsonPath = { path: `reports/${org}-PAT-list.json` }
+    const sortArray = orderBy(patArray, [sortPatColumn], [sortPatOrder])
     const csvArray = stringify(sortArray, {
       header: true,
       columns: columns,
@@ -248,7 +257,11 @@ async function formatPat(patArray) {
     })
 
     const csv = { content: Buffer.from(csvArray).toString('base64') }
+    const json = { content: Buffer.from(JSON.stringify(patArray, null, 2)).toString('base64') }
     await pushReport(csv, reportPath)
+    if (jsonExport === 'true') {
+      await pushJsonReport(json, jsonPath)
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -265,14 +278,19 @@ async function formatSSH(sshArray) {
     }
 
     const reportPath = { path: `reports/${org}-SSH-list.csv` }
-    const sortArray = arraySort(sshArray, 'credential_authorized_at', { reverse: true })
+    const jsonPath = { path: `reports/${org}-SSH-list.json` }
+    const sortArray = orderBy(sshArray, [sortSshColumn], [sortSshOrder])
     const csvArray = stringify(sortArray, {
       header: true,
       columns: columns
     })
 
     const csv = { content: Buffer.from(csvArray).toString('base64') }
+    const json = { content: Buffer.from(JSON.stringify(sshArray, null, 2)).toString('base64') }
     await pushReport(csv, reportPath)
+    if (jsonExport === 'true') {
+      await pushJsonReport(json, jsonPath)
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -426,14 +444,19 @@ async function formatApp(appArray) {
     }
 
     const reportPath = { path: `reports/${org}-APP-list.csv` }
-    const sortArray = arraySort(appArray, 'install_id', { reverse: true })
+    const jsonPath = { path: `reports/${org}-APP-list.json` }
+    const sortArray = orderBy(appArray, [sortAppColumn], [sortAppOrder])
     const csvArray = stringify(sortArray, {
       header: true,
       columns: columns
     })
 
     const csv = { content: Buffer.from(csvArray).toString('base64') }
+    const json = { content: Buffer.from(JSON.stringify(appArray, null, 2)).toString('base64') }
     await pushReport(csv, reportPath)
+    if (jsonExport === 'true') {
+      await pushJsonReport(json, jsonPath)
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -516,7 +539,8 @@ async function formatDeployKey(deployKeyArray) {
     }
 
     const reportPath = { path: `reports/${org}-DEPLOYKEY-list.csv` }
-    const sortArray = arraySort(deployKeyArray, 'date', { reverse: true })
+    const jsonPath = { path: `reports/${org}-DEPLOYKEY-list.json` }
+    const sortArray = orderBy(deployKeyArray, [sortDeployKeyColumn], [sortDeployKeyOrder])
     const csvArray = stringify(sortArray, {
       header: true,
       columns: columns,
@@ -528,7 +552,11 @@ async function formatDeployKey(deployKeyArray) {
     })
 
     const csv = { content: Buffer.from(csvArray).toString('base64') }
+    const json = { content: Buffer.from(JSON.stringify(deployKeyArray, null, 2)).toString('base64') }
     await pushReport(csv, reportPath)
+    if (jsonExport === 'true') {
+      await pushJsonReport(json, jsonPath)
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -563,6 +591,41 @@ async function pushReport(csv, reportPath) {
       ...opts,
       ...csv,
       ...reportPath
+    })
+  } catch (error) {
+    core.setFailed(error.message)
+  }
+}
+
+// Push JSON reports to GitHub
+async function pushJsonReport(json, jsonPath) {
+  try {
+    const opts = {
+      owner,
+      repo,
+      message: `${new Date().toISOString().slice(0, 10)} Authorization report`,
+      committer: {
+        name: committerName,
+        email: committerEmail
+      }
+    }
+
+    try {
+      const { data } = await octokit.rest.repos.getContent({
+        owner,
+        repo,
+        ...jsonPath
+      })
+
+      if (data && data.sha) {
+        reportPath.sha = data.sha
+      }
+    } catch (error) {}
+
+    await octokit.rest.repos.createOrUpdateFileContents({
+      ...opts,
+      ...json,
+      ...jsonPath
     })
   } catch (error) {
     core.setFailed(error.message)
