@@ -312,6 +312,9 @@ async function app() {
       const install_id = auth.id
       const app_id = auth.app_id
       const repos = auth.repository_selection
+      const created = (auth.created_at || '').slice(0, 10)
+      const updated = (auth.updated_at || '').slice(0, 10)
+      const suspended = (auth.suspended_at || '').slice(0, 10)
 
       const pages = auth.permissions.pages
       const checks = auth.permissions.checks
@@ -353,6 +356,9 @@ async function app() {
         install_id,
         app_id,
         repos,
+        created,
+        updated,
+        suspended,
         pages,
         checks,
         issues,
@@ -403,6 +409,9 @@ async function formatApp(appArray) {
       install_id: 'Install ID',
       app_id: 'App ID',
       repos: 'Repos',
+      created: 'Created',
+      updated: 'Updated',
+      suspended: 'Suspended',
 
       // Repository level permissions
       actions: 'Repo: Actions',
