@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get authorization report
-        uses: nicklegan/github-org-authorization-action@v2.0.0
+        uses: nicklegan/github-org-authorization-action@v2.1.0
         with:
           token: ${{ secrets.ORG_TOKEN }}
         # org: ''
@@ -150,7 +150,10 @@ jobs:
 | `GitHub App`                   | `slug`                             | The GitHub App name                                                              |
 | `Install ID`                   | `install_id`                       | The GitHub App installation ID                                                   |
 | `App ID`                       | `app_id`                           | The GitHub App ID                                                                |
-| `Repos`                        | `repos`                            | Repositories the GitHub App installation is enabled for                          |
+| `Repos`                        | `repos`                            | Shows if the GitHub App installation is enabled for all or selected repos        |
+| `Created`                      | `created`                          | Shows when the Github App installation was created                               |
+| `Updated`                      | `updated`                          | Shows when the Github App installation was updated                               |
+| `Suspended`                    | `suspended`                        | Shows if and when the Github App installation was suspended                      |
 | `Repo: Actions`                | `actions`                          | Workflows, workflow runs and artifacts                                           |
 | `Repo: Administration`         | `administration`                   | Repository creation, deletion, settings, teams, and collaborators                |
 | `Repo: Checks`                 | `checks`                           | Checks on code                                                                   |
