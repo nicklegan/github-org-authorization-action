@@ -19,12 +19,20 @@ const sortPatColumn = core.getInput('pat-sort', { required: false }) || 'credent
 const sortPatOrder = core.getInput('pat-sort-order', { required: false }) || 'desc'
 const sortDeployKeyColumn = core.getInput('deploy-key-sort', { required: false }) || 'date'
 const sortDeployKeyOrder = core.getInput('deploy-key-sort-order', { required: false }) || 'desc'
+const actor = core.getInput('actor', { required: false }) || 'false'
+
+const appArray = []
+const appInstallerArray = []
+const appRepoadderArray = []
 
 ;(async () => {
   try {
     await patssh()
-    await app()
     await deployKeys()
+    if (actor === 'true') {
+      await auditLog(appInstallerArray, appRepoadderArray)
+    }
+    await app(appInstallerArray, appRepoadderArray)
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -296,181 +304,6 @@ async function formatSSH(sshArray) {
   }
 }
 
-// Retrieve GitHub Apps
-async function app() {
-  try {
-    const appArray = []
-
-    console.log('Retrieving GitHub Apps')
-
-    const dataJSON = await octokit.paginate('GET /orgs/{org}/installations', {
-      org: org
-    })
-
-    dataJSON.forEach((auth) => {
-      const slug = auth.app_slug
-      const install_id = auth.id
-      const app_id = auth.app_id
-      const repos = auth.repository_selection
-      const created = (auth.created_at || '').slice(0, 10)
-      const updated = (auth.updated_at || '').slice(0, 10)
-      const suspended = (auth.suspended_at || '').slice(0, 10)
-
-      const pages = auth.permissions.pages
-      const checks = auth.permissions.checks
-      const issues = auth.permissions.issues
-      const actions = auth.permissions.actions
-      const members = auth.permissions.members
-      const secrets = auth.permissions.secrets
-      const contents = auth.permissions.contents
-      const metadata = auth.permissions.metadata
-      const packages = auth.permissions.packages
-      const statuses = auth.permissions.statuses
-      const workflows = auth.permissions.workflows
-      const deployments = auth.permissions.deployments
-      const discussions = auth.permissions.discussions
-      const single_file = auth.permissions.single_file
-      const environments = auth.permissions.environments
-      const pull_requests = auth.permissions.pull_requests
-      const administration = auth.permissions.administration
-      const security_events = auth.permissions.security_events
-      const repository_hooks = auth.permissions.repository_hooks
-      const team_discussions = auth.permissions.team_discussions
-      const organization_plan = auth.permissions.organization_plan
-      const dependabot_secrets = auth.permissions.dependabot_secrets
-      const organization_hooks = auth.permissions.organization_hooks
-      const organization_events = auth.permissions.organization_events
-      const repository_projects = auth.permissions.repository_projects
-      const organization_secrets = auth.permissions.organization_secrets
-      const vulnerability_alerts = auth.permissions.vulnerability_alerts
-      const organization_packages = auth.permissions.organization_packages
-      const organization_projects = auth.permissions.organization_projects
-      const secret_scanning_alerts = auth.permissions.secret_scanning_alerts
-      const organization_user_blocking = auth.permissions.organization_user_blocking
-      const organization_administration = auth.permissions.organization_administration
-      const organization_dependabot_secrets = auth.permissions.organization_dependabot_secrets
-      const organization_self_hosted_runners = auth.permissions.organization_self_hosted_runners
-
-      appArray.push({
-        slug,
-        install_id,
-        app_id,
-        repos,
-        created,
-        updated,
-        suspended,
-        pages,
-        checks,
-        issues,
-        actions,
-        members,
-        secrets,
-        contents,
-        metadata,
-        packages,
-        statuses,
-        workflows,
-        deployments,
-        discussions,
-        single_file,
-        environments,
-        pull_requests,
-        administration,
-        security_events,
-        repository_hooks,
-        team_discussions,
-        organization_plan,
-        dependabot_secrets,
-        organization_hooks,
-        organization_events,
-        repository_projects,
-        organization_secrets,
-        vulnerability_alerts,
-        organization_packages,
-        organization_projects,
-        secret_scanning_alerts,
-        organization_user_blocking,
-        organization_administration,
-        organization_dependabot_secrets,
-        organization_self_hosted_runners
-      })
-    })
-    formatApp(appArray)
-  } catch (error) {
-    core.setFailed(error.message)
-  }
-}
-
-// Format GitHub App data
-async function formatApp(appArray) {
-  try {
-    const columns = {
-      slug: 'GitHub App',
-      install_id: 'Install ID',
-      app_id: 'App ID',
-      repos: 'Repos',
-      created: 'Created',
-      updated: 'Updated',
-      suspended: 'Suspended',
-
-      // Repository level permissions
-      actions: 'Repo: Actions',
-      administration: 'Repo: Administration',
-      checks: 'Repo: Checks',
-      security_events: 'Repo: Code scanning alerts',
-      statuses: 'Repo: Commit statuses',
-      contents: 'Repo: Contents',
-      vulnerability_alerts: 'Repo: Dependabot alerts',
-      dependabot_secrets: 'Repo: Dependabot secrets',
-      deployments: 'Repo: Deployments',
-      discussions: 'Repo: Discussions',
-      environments: 'Repo: Environments',
-      issues: 'Repo: Issues',
-      metadata: 'Repo: Metadata',
-      packages: 'Repo: Packages',
-      pages: 'Repo: Pages',
-      repository_projects: 'Repo: Projects',
-      pull_requests: 'Repo: Pull requests',
-      secret_scanning_alerts: 'Repo: Secret scanning alerts',
-      secrets: 'Repo: Secrets',
-      single_file: 'Repo: Single file',
-      repository_hooks: 'Repo: Webhooks',
-      workflows: 'Repo: Workflows',
-
-      // Organization level permissions
-      organization_administration: 'Org: Administration',
-      organization_user_blocking: 'Org: Blocking users',
-      organization_events: 'Org: Events',
-      members: 'Org: Members',
-      organization_dependabot_secrets: 'Org: Dependabot secrets',
-      organization_plan: 'Org: Plan',
-      organization_projects: 'Org: Projects',
-      organization_secrets: 'Org: Secrets',
-      organization_self_hosted_runners: 'Org: Self-hosted runners',
-      team_discussions: 'Org: Team discussions',
-      organization_hooks: 'Org: Webhooks',
-      organization_packages: 'Org: Packages'
-    }
-
-    const reportPath = { path: `reports/${org}-APP-list.csv` }
-    const jsonPath = { path: `reports/${org}-APP-list.json` }
-    const sortArray = orderBy(appArray, [sortAppColumn], [sortAppOrder])
-    const csvArray = stringify(sortArray, {
-      header: true,
-      columns: columns
-    })
-
-    const csv = { content: Buffer.from(csvArray).toString('base64') }
-    const json = { content: Buffer.from(JSON.stringify(appArray, null, 2)).toString('base64') }
-    await pushReport(csv, reportPath)
-    if (jsonExport === 'true') {
-      await pushJsonReport(json, jsonPath)
-    }
-  } catch (error) {
-    core.setFailed(error.message)
-  }
-}
-
 // Retrieve deploy keys
 async function deployKeys() {
   try {
@@ -562,6 +395,275 @@ async function formatDeployKey(deployKeyArray) {
 
     const csv = { content: Buffer.from(csvArray).toString('base64') }
     const json = { content: Buffer.from(JSON.stringify(deployKeyArray, null, 2)).toString('base64') }
+    await pushReport(csv, reportPath)
+    if (jsonExport === 'true') {
+      await pushJsonReport(json, jsonPath)
+    }
+  } catch (error) {
+    core.setFailed(error.message)
+  }
+}
+
+// Retrieve App install audit log
+async function auditLog(appInstallerArray, appRepoadderArray) {
+  try {
+    console.log('Retrieving App Installer Audit Log')
+
+    const dataJSON = await octokit.paginate('GET /orgs/{org}/audit-log', {
+      org: org,
+      per_page: 100
+    })
+
+    let installerArray = []
+
+    dataJSON.forEach((auth) => {
+      if (auth.action === 'integration_installation.create') {
+        const name = auth.name
+        const actor = auth.actor
+
+        installerArray.push({
+          name,
+          actor
+        })
+      }
+    })
+
+    installerArray
+      .map(JSON.stringify)
+      .filter(function (item, index, arr) {
+        return arr.indexOf(item, index + 1) === -1
+      })
+      .map(JSON.parse)
+      .forEach((o) => {
+        o.name = o.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/gi, ' ')
+          .trim()
+        let temp = appInstallerArray.find((x) => {
+          if (x && x.name === o.name) {
+            x.actor += ', ' + o.actor
+            return true
+          }
+        })
+        if (!temp) appInstallerArray.push(o)
+      })
+
+    let repoaddArray = []
+
+    dataJSON.forEach((auth) => {
+      if (auth.action === 'integration_installation.repositories_added') {
+        const name = auth.name
+        const actor = auth.actor
+
+        repoaddArray.push({
+          name,
+          actor
+        })
+      }
+    })
+
+    repoaddArray
+      .map(JSON.stringify)
+      .filter(function (item, index, arr) {
+        return arr.indexOf(item, index + 1) === -1
+      })
+      .map(JSON.parse)
+      .forEach((o) => {
+        o.name = o.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/gi, ' ')
+          .trim()
+        let temp = appRepoadderArray.find((x) => {
+          if (x && x.name === o.name) {
+            x.actor += ', ' + o.actor
+            return true
+          }
+        })
+        if (!temp) appRepoadderArray.push(o)
+      })
+  } catch (error) {
+    core.setFailed(error.message)
+  }
+}
+
+// Retrieve GitHub Apps
+async function app() {
+  try {
+    console.log('Retrieving GitHub Apps')
+
+    const dataJSON = await octokit.paginate('GET /orgs/{org}/installations', {
+      org: org
+    })
+
+    dataJSON.forEach((auth) => {
+      const slug = auth.app_slug
+      const install_id = auth.id
+      const app_id = auth.app_id
+      const repos = auth.repository_selection
+      const created = (auth.created_at || '').slice(0, 10)
+      const updated = (auth.updated_at || '').slice(0, 10)
+      const suspended = (auth.suspended_at || '').slice(0, 10)
+
+      const pages = auth.permissions.pages
+      const checks = auth.permissions.checks
+      const issues = auth.permissions.issues
+      const actions = auth.permissions.actions
+      const members = auth.permissions.members
+      const secrets = auth.permissions.secrets
+      const contents = auth.permissions.contents
+      const metadata = auth.permissions.metadata
+      const packages = auth.permissions.packages
+      const statuses = auth.permissions.statuses
+      const workflows = auth.permissions.workflows
+      const deployments = auth.permissions.deployments
+      const discussions = auth.permissions.discussions
+      const single_file = auth.permissions.single_file
+      const environments = auth.permissions.environments
+      const pull_requests = auth.permissions.pull_requests
+      const administration = auth.permissions.administration
+      const security_events = auth.permissions.security_events
+      const repository_hooks = auth.permissions.repository_hooks
+      const team_discussions = auth.permissions.team_discussions
+      const organization_plan = auth.permissions.organization_plan
+      const dependabot_secrets = auth.permissions.dependabot_secrets
+      const organization_hooks = auth.permissions.organization_hooks
+      const organization_events = auth.permissions.organization_events
+      const repository_projects = auth.permissions.repository_projects
+      const organization_secrets = auth.permissions.organization_secrets
+      const vulnerability_alerts = auth.permissions.vulnerability_alerts
+      const organization_packages = auth.permissions.organization_packages
+      const organization_projects = auth.permissions.organization_projects
+      const secret_scanning_alerts = auth.permissions.secret_scanning_alerts
+      const organization_user_blocking = auth.permissions.organization_user_blocking
+      const organization_administration = auth.permissions.organization_administration
+      const organization_dependabot_secrets = auth.permissions.organization_dependabot_secrets
+      const organization_self_hosted_runners = auth.permissions.organization_self_hosted_runners
+
+      const slugActor = slug.replace(/[^a-z0-9]+/gi, ' ')
+
+      const appInstaller = appInstallerArray.find((app) => app.name === slugActor)
+      const installer = appInstaller ? appInstaller.actor : ''
+
+      const appRepoadder = appRepoadderArray.find((app) => app.name === slugActor)
+      const repoadder = appRepoadder ? appRepoadder.actor : ''
+
+      appArray.push({
+        slug,
+        install_id,
+        app_id,
+        repos,
+        created,
+        updated,
+        suspended,
+        pages,
+        checks,
+        issues,
+        actions,
+        members,
+        secrets,
+        contents,
+        metadata,
+        packages,
+        statuses,
+        workflows,
+        deployments,
+        discussions,
+        single_file,
+        environments,
+        pull_requests,
+        administration,
+        security_events,
+        repository_hooks,
+        team_discussions,
+        organization_plan,
+        dependabot_secrets,
+        organization_hooks,
+        organization_events,
+        repository_projects,
+        organization_secrets,
+        vulnerability_alerts,
+        organization_packages,
+        organization_projects,
+        secret_scanning_alerts,
+        organization_user_blocking,
+        organization_administration,
+        organization_dependabot_secrets,
+        organization_self_hosted_runners,
+        installer,
+        repoadder
+      })
+    })
+    formatApp(appArray)
+  } catch (error) {
+    core.setFailed(error.message)
+  }
+}
+
+// Format GitHub App data
+async function formatApp(appArray) {
+  try {
+    const columns = {
+      slug: 'GitHub App',
+      install_id: 'Install ID',
+      app_id: 'App ID',
+      repos: 'Repos',
+      created: 'Created',
+      updated: 'Updated',
+      suspended: 'Suspended',
+
+      // Repository level permissions
+      actions: 'Repo: Actions',
+      administration: 'Repo: Administration',
+      checks: 'Repo: Checks',
+      security_events: 'Repo: Code scanning alerts',
+      statuses: 'Repo: Commit statuses',
+      contents: 'Repo: Contents',
+      vulnerability_alerts: 'Repo: Dependabot alerts',
+      dependabot_secrets: 'Repo: Dependabot secrets',
+      deployments: 'Repo: Deployments',
+      discussions: 'Repo: Discussions',
+      environments: 'Repo: Environments',
+      issues: 'Repo: Issues',
+      metadata: 'Repo: Metadata',
+      packages: 'Repo: Packages',
+      pages: 'Repo: Pages',
+      repository_projects: 'Repo: Projects',
+      pull_requests: 'Repo: Pull requests',
+      secret_scanning_alerts: 'Repo: Secret scanning alerts',
+      secrets: 'Repo: Secrets',
+      single_file: 'Repo: Single file',
+      repository_hooks: 'Repo: Webhooks',
+      workflows: 'Repo: Workflows',
+
+      // Organization level permissions
+      organization_administration: 'Org: Administration',
+      organization_user_blocking: 'Org: Blocking users',
+      organization_events: 'Org: Events',
+      members: 'Org: Members',
+      organization_dependabot_secrets: 'Org: Dependabot secrets',
+      organization_plan: 'Org: Plan',
+      organization_projects: 'Org: Projects',
+      organization_secrets: 'Org: Secrets',
+      organization_self_hosted_runners: 'Org: Self-hosted runners',
+      team_discussions: 'Org: Team discussions',
+      organization_hooks: 'Org: Webhooks',
+      organization_packages: 'Org: Packages',
+
+      // App installation actor
+      installer: 'Installed by',
+      repoadder: 'Repos added by'
+    }
+
+    const reportPath = { path: `reports/${org}-APP-list.csv` }
+    const jsonPath = { path: `reports/${org}-APP-list.json` }
+    const sortArray = orderBy(appArray, [sortAppColumn], [sortAppOrder])
+    const csvArray = stringify(sortArray, {
+      header: true,
+      columns: columns
+    })
+
+    const csv = { content: Buffer.from(csvArray).toString('base64') }
+    const json = { content: Buffer.from(JSON.stringify(appArray, null, 2)).toString('base64') }
     await pushReport(csv, reportPath)
     if (jsonExport === 'true') {
       await pushJsonReport(json, jsonPath)

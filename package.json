@@ -1,7 +1,7 @@
 {
   "name": "github-org-authorization-report-action",
-  "version": "2.1.0",
-  "description": "A GitHub Action to generate reports that contain the SSH keys, PATs, GitHub App installations and deploy keys of an org.",
+  "version": "2.2.0",
+  "description": "A GitHub Action to generate reports that contain the SSH keys, PATs, GitHub App installations and deploy keys of a GitHub org.",
   "author": {
     "name": "GitHub Expert Services",
     "email": "services@github.com",

@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get authorization report
-        uses: nicklegan/github-org-authorization-action@v2.1.0
+        uses: nicklegan/github-org-authorization-action@v2.2.0
         with:
           token: ${{ secrets.ORG_TOKEN }}
         # org: ''
@@ -43,6 +43,7 @@ jobs:
         # deploy-keys-sort: 'date'
         # deploy-keys-sort-order: 'desc'
         # json: 'false'
+        # actor: 'false'
 ```
 
 ## GitHub secrets
@@ -61,25 +62,28 @@ jobs:
 
 ## Action inputs
 
-| Name                     | Description                                                                        | Default                     | Location       | Required |
-| :----------------------- | :--------------------------------------------------------------------------------- | :-------------------------- | :------------- | :------- |
-| `org`                    | Organization different than workflow context                                       |                             | [workflow.yml] | `false`  |
-| `app-sort`               | Sort the GitHub Apps CSV report by column (select column in JSON format)           | `install_id`                | [workflow.yml] | `false`  |
-| `app-sort-order`         | Sort the selected CSV column of GitHub Apps in the specified order                 | `desc`                      | [workflow.yml] | `false`  |
-| `ssh-sort`               | Sort the SSH key CSV report by column (select column in JSON format)               | `credential_authorized_at`  | [workflow.yml] | `false`  |
-| `ssh-sort-order`         | Sort the selected CSV column of SSH keys in the specified order                    | `desc`                      | [workflow.yml] | `false`  |
-| `pat-sort`               | Sort the Personal Access Token CSV report by column (select column in JSON format) | `credential_authorized_at`  | [workflow.yml] | `false`  |
-| `pat-sort-order`         | Sort the selected CSV column of Personal Access Tokens in the specified order      | `desc`                      | [workflow.yml] | `false`  |
-| `deploy-keys-sort`       | Sort the Deploy Key CSV report by column (select column in JSON format)            | `date`                      | [workflow.yml] | `false`  |
-| `deploy-keys-sort-order` | Sort the selected CSV column of Deploy Keys in the specified order                 | `desc`                      | [workflow.yml] | `false`  |
-| `json`                   | Setting to generate an additional report in JSON format                            | `false`                     | [workflow.yml] | `false`  |
-| `committer-name`         | The name of the committer that will appear in the Git history                      | `github-actions`            | [action.yml]   | `false`  |
-| `committer-email`        | The committer email that will appear in the Git history                            | `github-actions@github.com` | [action.yml]   | `false`  |
+| Name                     | Description                                                                                             | Default                     | Location       | Required |
+| :----------------------- | :------------------------------------------------------------------------------------------------------ | :-------------------------- | :------------- | :------- |
+| `org`                    | Organization different than workflow context                                                            |                             | [workflow.yml] | `false`  |
+| `app-sort`               | Sort the GitHub Apps CSV report by column (select column in JSON format)                                | `install_id`                | [workflow.yml] | `false`  |
+| `app-sort-order`         | Sort the selected CSV column of GitHub Apps in the specified order                                      | `desc`                      | [workflow.yml] | `false`  |
+| `ssh-sort`               | Sort the SSH key CSV report by column (select column in JSON format)                                    | `credential_authorized_at`  | [workflow.yml] | `false`  |
+| `ssh-sort-order`         | Sort the selected CSV column of SSH keys in the specified order                                         | `desc`                      | [workflow.yml] | `false`  |
+| `pat-sort`               | Sort the Personal Access Token CSV report by column (select column in JSON format)                      | `credential_authorized_at`  | [workflow.yml] | `false`  |
+| `pat-sort-order`         | Sort the selected CSV column of Personal Access Tokens in the specified order                           | `desc`                      | [workflow.yml] | `false`  |
+| `deploy-keys-sort`       | Sort the Deploy Key CSV report by column (select column in JSON format)                                 | `date`                      | [workflow.yml] | `false`  |
+| `deploy-keys-sort-order` | Sort the selected CSV column of Deploy Keys in the specified order                                      | `desc`                      | [workflow.yml] | `false`  |
+| `json`                   | Setting to generate an additional report in JSON format                                                 | `false`                     | [workflow.yml] | `false`  |
+| `actor`                  | Organization members installing and adding selected repos to the GitHub App installation (newest first) | `false`                     | [workflow.yml] | `false`  |
+| `committer-name`         | The name of the committer that will appear in the Git history                                           | `github-actions`            | [action.yml]   | `false`  |
+| `committer-email`        | The committer email that will appear in the Git history                                                 | `github-actions@github.com` | [action.yml]   | `false`  |
 
 [workflow.yml]: #Usage 'Usage'
 [action.yml]: action.yml 'action.yml'
 
 :bulb: JSON naming details used for sorting columns in the workflow file are specified below.
+
+:bulb: The **actor** flag is set to include organization members responsible for installing and adding selected repos to the GitHub App installation in the report. This feature is experimental as it queries the GitHub audit log which only has a 90 day retention period, after this period the data will become unavailable.
 
 ## CSV / JSON layout
 
@@ -145,49 +149,51 @@ jobs:
 
 ### GitHub App installation report
 
-| CSV column                     | JSON                               | Description                                                                      |
-| :----------------------------- | :--------------------------------- | :------------------------------------------------------------------------------- |
-| `GitHub App`                   | `slug`                             | The GitHub App name                                                              |
-| `Install ID`                   | `install_id`                       | The GitHub App installation ID                                                   |
-| `App ID`                       | `app_id`                           | The GitHub App ID                                                                |
-| `Repos`                        | `repos`                            | Shows if the GitHub App installation is enabled for all or selected repos        |
-| `Created`                      | `created`                          | Shows when the Github App installation was created                               |
-| `Updated`                      | `updated`                          | Shows when the Github App installation was updated                               |
-| `Suspended`                    | `suspended`                        | Shows if and when the Github App installation was suspended                      |
-| `Repo: Actions`                | `actions`                          | Workflows, workflow runs and artifacts                                           |
-| `Repo: Administration`         | `administration`                   | Repository creation, deletion, settings, teams, and collaborators                |
-| `Repo: Checks`                 | `checks`                           | Checks on code                                                                   |
-| `Repo: Code scanning alerts`   | `security_events`                  | View and manage security events like code scanning alerts                        |
-| `Repo: Commit statuses`        | `statuses`                         | Commit statuses                                                                  |
-| `Repo: Contents`               | `contents`                         | Repository contents, commits, branches, downloads, releases, and merges          |
-| `Repo: Dependabot alerts`      | `vulnerability_alerts`             | Retrieve Dependabot alerts                                                       |
-| `Repo: Dependabot secrets`     | `dependabot_secrets`               | Manage Dependabot repository secrets                                             |
-| `Repo: Deployments`            | `deployments`                      | Deployments and deployment statuses                                              |
-| `Repo: Discussions`            | `discussions`                      | Discussions and related comments and labels                                      |
-| `Repo: Environments`           | `environments`                     | Manage repository environments                                                   |
-| `Repo: Issues`                 | `issues`                           | Issues and related comments, assignees, labels, and milestones                   |
-| `Repo: Metadata`               | `metadata`                         | Search repositories, list collaborators, and access repository metadata          |
-| `Repo: Packages`               | `packages`                         | Packages published to the GitHub Package Platform                                |
-| `Repo: Pages`                  | `pages`                            | Retrieve Pages statuses, configuration, and builds, as well as create new builds |
-| `Repo: Projects`               | `repository_projects`              | Manage repository projects, columns, and cards                                   |
-| `Repo: Pull requests`          | `pull_requests`                    | Pull requests and related comments, assignees, labels, milestones, and merges    |
-| `Repo: Secret scanning alerts` | `secret_scanning_alerts`           | View and manage secret scanning alerts                                           |
-| `Repo: Secrets`                | `secrets`                          | Manage Actions repository secrets                                                |
-| `Repo: Single file`            | `single_file`                      | Manage just a single file                                                        |
-| `Repo: Webhooks`               | `repository_hooks`                 | Manage the post-receive hooks for a repository                                   |
-| `Repo: Workflows`              | `workflows`                        | Update GitHub Action workflow files                                              |
-| `Org: Administration`          | `organization_administration`      | Manage access to an organization                                                 |
-| `Org: Blocking users`          | `organization_user_blocking`       | View and manage users blocked by the organization                                |
-| `Org: Events`                  | `organization_events`              | View events triggered by an activity in an organization                          |
-| `Org: Members`                 | `members`                          | Organization members and teams                                                   |
-| `Org: Dependabot secrets`      | `organization_dependabot_secrets`  | Manage Dependabot organization secrets                                           |
-| `Org: Plan`                    | `organization_plan`                | View an organization's plan                                                      |
-| `Org: Projects`                | `organization_projects`            | Manage organization projects and projects beta (where available)                 |
-| `Org: Secrets`                 | `organization_secrets`             | Manage Actions organization secrets                                              |
-| `Org: Self-hosted runners`     | `organization_self_hosted_runners` | View and manage Actions self-hosted runners available to an organization         |
-| `Org: Team discussions`        | `team_discussions`                 | Manage team discussions and related comments                                     |
-| `Org: Webhooks`                | `organization_hooks`               | Manage the post-receive hooks for an organization                                |
-| `Org: Packages`                | `organization_packages`            | Manage packages for an organization                                              |
+| CSV column                     | JSON                               | Description                                                                        |
+| :----------------------------- | :--------------------------------- | :--------------------------------------------------------------------------------- |
+| `GitHub App`                   | `slug`                             | The GitHub App name                                                                |
+| `Install ID`                   | `install_id`                       | The GitHub App installation ID                                                     |
+| `App ID`                       | `app_id`                           | The GitHub App ID                                                                  |
+| `Repos`                        | `repos`                            | Shows if the GitHub App installation is enabled for all or selected repos          |
+| `Created`                      | `created`                          | Shows when the Github App installation was created                                 |
+| `Updated`                      | `updated`                          | Shows when the Github App installation was updated                                 |
+| `Suspended`                    | `suspended`                        | Shows if and when the Github App installation was suspended                        |
+| `Repo: Actions`                | `actions`                          | Workflows, workflow runs and artifacts                                             |
+| `Repo: Administration`         | `administration`                   | Repository creation, deletion, settings, teams, and collaborators                  |
+| `Repo: Checks`                 | `checks`                           | Checks on code                                                                     |
+| `Repo: Code scanning alerts`   | `security_events`                  | View and manage security events like code scanning alerts                          |
+| `Repo: Commit statuses`        | `statuses`                         | Commit statuses                                                                    |
+| `Repo: Contents`               | `contents`                         | Repository contents, commits, branches, downloads, releases, and merges            |
+| `Repo: Dependabot alerts`      | `vulnerability_alerts`             | Retrieve Dependabot alerts                                                         |
+| `Repo: Dependabot secrets`     | `dependabot_secrets`               | Manage Dependabot repository secrets                                               |
+| `Repo: Deployments`            | `deployments`                      | Deployments and deployment statuses                                                |
+| `Repo: Discussions`            | `discussions`                      | Discussions and related comments and labels                                        |
+| `Repo: Environments`           | `environments`                     | Manage repository environments                                                     |
+| `Repo: Issues`                 | `issues`                           | Issues and related comments, assignees, labels, and milestones                     |
+| `Repo: Metadata`               | `metadata`                         | Search repositories, list collaborators, and access repository metadata            |
+| `Repo: Packages`               | `packages`                         | Packages published to the GitHub Package Platform                                  |
+| `Repo: Pages`                  | `pages`                            | Retrieve Pages statuses, configuration, and builds, as well as create new builds   |
+| `Repo: Projects`               | `repository_projects`              | Manage repository projects, columns, and cards                                     |
+| `Repo: Pull requests`          | `pull_requests`                    | Pull requests and related comments, assignees, labels, milestones, and merges      |
+| `Repo: Secret scanning alerts` | `secret_scanning_alerts`           | View and manage secret scanning alerts                                             |
+| `Repo: Secrets`                | `secrets`                          | Manage Actions repository secrets                                                  |
+| `Repo: Single file`            | `single_file`                      | Manage just a single file                                                          |
+| `Repo: Webhooks`               | `repository_hooks`                 | Manage the post-receive hooks for a repository                                     |
+| `Repo: Workflows`              | `workflows`                        | Update GitHub Action workflow files                                                |
+| `Org: Administration`          | `organization_administration`      | Manage access to an organization                                                   |
+| `Org: Blocking users`          | `organization_user_blocking`       | View and manage users blocked by the organization                                  |
+| `Org: Events`                  | `organization_events`              | View events triggered by an activity in an organization                            |
+| `Org: Members`                 | `members`                          | Organization members and teams                                                     |
+| `Org: Dependabot secrets`      | `organization_dependabot_secrets`  | Manage Dependabot organization secrets                                             |
+| `Org: Plan`                    | `organization_plan`                | View an organization's plan                                                        |
+| `Org: Projects`                | `organization_projects`            | Manage organization projects and projects beta (where available)                   |
+| `Org: Secrets`                 | `organization_secrets`             | Manage Actions organization secrets                                                |
+| `Org: Self-hosted runners`     | `organization_self_hosted_runners` | View and manage Actions self-hosted runners available to an organization           |
+| `Org: Team discussions`        | `team_discussions`                 | Manage team discussions and related comments                                       |
+| `Org: Webhooks`                | `organization_hooks`               | Manage the post-receive hooks for an organization                                  |
+| `Org: Packages`                | `organization_packages`            | Manage packages for an organization                                                |
+| `Installed by`                 | `installer`                        | Organization members responsible for installing the App                            |
+| `Repos added by`               | `repoadder`                        | Organization members responsible for adding selected repos to the App installation |
 
 ### Deploy key report
 

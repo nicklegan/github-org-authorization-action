@@ -35,6 +35,9 @@ inputs:
   json:
     description: 'Generate optional report in JSON format'
     required: false
+  actor:
+    description: 'Retrieve organization members installing and adding repos to the GitHub App installation'
+    required: false
   committer-name:
     description: 'The name of the committer that will appear in the Git history'
     default: 'github-actions'
