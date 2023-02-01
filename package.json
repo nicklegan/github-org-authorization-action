@@ -28,6 +28,6 @@
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.3",
     "csv": "^6.2.0",
-    "natural-orderby": "^2.0.3"
+    "natural-orderby": "^3.0.2"
   }
 }
